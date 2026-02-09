@@ -39,8 +39,11 @@ salary: https://www.kaggle.com/code/shubham47/linear-regression-salary-dataset/i
 ## Create virtual environment (recommended)
 python -m venv venv
 
+
 Linux / macOS: source venv/bin/activate
+
 Windows: venv\Scripts\activate
+
 
 pip install numpy pandas
 

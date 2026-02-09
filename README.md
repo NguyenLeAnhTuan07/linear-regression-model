@@ -33,6 +33,7 @@ If your dataset contains string values (for example, a car dataset), you need to
 
 🔗 Dataset link:  
 car : https://www.kaggle.com/code/mahnazarjmand/car-data-prediction-with-linear-regression/input
+
 salary: https://www.kaggle.com/code/shubham47/linear-regression-salary-dataset/input
 
 ## Create virtual environment (recommended)

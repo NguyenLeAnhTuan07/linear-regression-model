@@ -49,6 +49,7 @@ pip install numpy pandas
 
 Run the program
 Use this when you want to train the model and compute the weights: python train.py
+
 Use this when you want to make predictions using the trained weights: predict.py
 
 ## Conclusion

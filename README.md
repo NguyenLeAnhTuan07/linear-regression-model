@@ -39,7 +39,7 @@ Stochastic Gradient Descent is useful when:
 - Online learning (real-time data updates) is needed
 
 Although SGD introduces more noise in the optimization process, it often converges faster and can escape shallow local minima more effectively.
----
+
 ## Dataset
 
 The dataset used in this project is obtained from an external source.

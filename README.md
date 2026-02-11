@@ -71,6 +71,8 @@ Run the program
 Use this when you want to train the model and compute the weights: python train.py
 
 Use this when you want to make predictions using the trained weights: python predict.py
+If the learned weights are not satisfactory, you can modify the training hyperparameters in the fit function inside the modelpre directory. Specifically, you may tune the learning rate, number of epochs, and patience to improve the resulting weights.
+(This applies only to the Gradient Descent optimization method.)
 
 ## Conclusion
 

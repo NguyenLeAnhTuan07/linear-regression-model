@@ -1,60 +1,58 @@
 import pandas as pd
-import numpy as np
+import os
 from encoding.encoding import encode_categorical
+from modelpre.scalestd import calculate_and_save_params, apply_standard_scale
+
 
 def load_feature_names(path="data/feature_names.txt"):
-    with open(path, "r") as f:
-        features = [line.strip() for line in f if line.strip()]
-    return features
+    if not os.path.exists(path):
+        return []
+    with open(path, "r", encoding="utf-8") as f:
+        return [line.strip() for line in f if line.strip()]
 
 
-def preprocess(
-    csv_path,
-    feature_path="data/feature_names.txt",
-    mean=None,
-    std=None,
-    training=True
-):
-    df = pd.read_csv(csv_path)
+def get_processed_data(input_csv, mode="train"):
+    all_cols = load_feature_names()
+    if not all_cols:
+        raise ValueError("Lỗi: feature_names.txt trống hoặc không tìm thấy!")
 
-    # 1. Đọc feature names
-    feature_names = load_feature_names(feature_path)
+    df = pd.read_csv(input_csv)
 
-    # 2. Label là cột cuối
-    label_col = feature_names[-1]
-    feature_cols = feature_names[:-1]
+    if mode == "train":
+        # Khi train: cần đủ tất cả các cột (bao gồm cả cột target cuối)
+        df = df[all_cols].dropna()
+        df = encode_categorical(df)
 
-    # 3. TRAIN vs PREDICT
-    if training:
-        # train: cần cả feature + label
-        df = df[feature_names]
-    else:
-        # predict: chỉ cần feature
-        df = df[feature_cols]
+        # Tính và lưu mean/std trên toàn bộ tập train (cả X lẫn y)
+        calculate_and_save_params(df, all_cols)
+        df_scaled = apply_standard_scale(df, all_cols)
 
-    # 4. Drop missing
-    df = df.dropna()
+        if not os.path.exists("data"):
+            os.makedirs("data")
+        df_scaled.to_csv("data/data_scaled.csv", index=False)
 
-    # 5. Encode categorical
-    df = encode_categorical(df)
+        X = df_scaled.iloc[:, :-1].values
+        y = df_scaled.iloc[:, -1:].values
+        return X, y
 
-    # 6. Lấy X
-    X = df[feature_cols].values.astype(float)
+    elif mode == "predict":
+        # Khi predict: CHỈ lấy các cột feature (bỏ cột target cuối)
+        features_only = all_cols[:-1]
 
-    # 7. Scale
-    if training:
-        mean = X.mean(axis=0)
-        std = X.std(axis=0)
-        std[std == 0] = 1
-    else:
-        if mean is None or std is None:
-            raise ValueError("Predict cần mean & std từ train")
+        # Kiểm tra cột bị thiếu — cảnh báo rõ thay vì âm thầm gán 0
+        # (gán 0 trước encode sẽ sai với cột categorical vì map sẽ trả về NaN)
+        missing = [col for col in features_only if col not in df.columns]
+        if missing:
+            raise ValueError(
+                f"Lỗi: dudoan.csv thiếu các cột sau: {missing}\n"
+                "Hãy bổ sung đầy đủ trước khi dự đoán."
+            )
 
-    X = (X - mean) / std
+        df = df[features_only]
+        df = encode_categorical(df)
 
-    # 8. Lấy y nếu là training
-    if training:
-        y = df[label_col].values.reshape(-1, 1).astype(float)
-        return X, y, feature_cols, mean, std
-    else:
-        return X, feature_cols
+        # Scale dựa trên params đã lưu từ lúc train
+        df_scaled = apply_standard_scale(df, features_only)
+
+        # Trả về cả numpy array (để predict) lẫn DataFrame (để lưu file)
+        return df_scaled.values, df_scaled

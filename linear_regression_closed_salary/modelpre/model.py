@@ -17,5 +17,3 @@ def predict(X, w, b):
     Dự đoán y_hat = Xw + b
     """
     return X @ w + b
-
-
